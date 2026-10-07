@@ -371,15 +371,22 @@ halospace.effect_color_secondary = { 255, 255, 50 }
 -- thresholds, which are cutoffs on the noise that decide where the dark
 -- patches, reflections and glints show up.
 local flow = {
-	speed = 1,
-	tick = 1,
-	scale = nil,
+	speed = 3,
+	tick = 1.8,
+	scale = {0.08, 0.03},
 }
 local solar_effect = table.deepcopy(data.raw["tile-effect"]["lava"])
 solar_effect.name = "halo-solar"
 solar_effect.water.animation_speed = solar_effect.water.animation_speed * flow.speed
 solar_effect.water.tick_scale = solar_effect.water.tick_scale * flow.tick
-solar_effect.water.animation_scale = flow.scale or solar_effect.water.animation_scale
+solar_effect.water.animation_scale = flow.scale
+-- Vulcanus' lava is orange because its texture is orange, so the tint can't
+-- fix that: the second texture is a recolored copy (made by
+-- tools/recolor-lava.py), and the shader's own highlight colors, a green and a
+-- brown in Vulcanus' lava, are moved to yellow.
+solar_effect.water.textures[2].filename = "__Solar-Halo__/space/lava-solar.png"
+solar_effect.water.specular_lightness = {48, 40, 6}
+solar_effect.water.foam_color = {70, 55, 12}
 data:extend{solar_effect}
 halospace.effect = "halo-solar"
 halospace.variants.main[1].picture = "__Solar-Halo__/space/solar-tile.png"
