@@ -1,5 +1,29 @@
 local util = require("halo-util")
 
+-- The superheated pipe used to be a plain "heat-pipe" item whose place_result
+-- was never overridden away from the vanilla heat-pipe entity, so both the
+-- vanilla "heat-pipe" item and this item could build the exact same entity.
+-- That ambiguity is what let the game's ghost/robot item-resolution (used by
+-- remote view and construction bots, but not by hand-placement or the editor)
+-- pick "halo-superheated-pipe" to satisfy a plain heat-pipe ghost -- a
+-- hidden/uncraftable item nobody actually has, so the ghost could never be
+-- fulfilled. Giving it its own entity removes the ambiguity entirely: only
+-- "heat-pipe" can ever build "heat-pipe", and only "halo-superheated-pipe"
+-- can ever build "halo-superheated-pipe".
+-- (initial temperature is set to 800 on build in control.lua, rather than via
+-- heat_buffer.default_temperature -- raising default_temperature past the
+-- default min_working_temperature would also require raising
+-- min_working_temperature to match, and it's unclear whether that has other
+-- side effects on a bare heat-pipe, so setting it explicitly on build is the
+-- safer option)
+local shp_entity = table.deepcopy(data.raw["heat-pipe"]["heat-pipe"])
+shp_entity.name = "halo-superheated-pipe"
+-- Once placed it's just a heat pipe, so it reads as one everywhere the entity
+-- is shown (tooltips, ghosts, alt-mode, factoriopedia).
+shp_entity.localised_name = {"entity-name.heat-pipe"}
+shp_entity.localised_description = {"entity-description.heat-pipe"}
+data:extend{shp_entity}
+
 local shpipe = table.deepcopy(data.raw["item"]["heat-pipe"])
 shpipe.icons = {{
 	icon = "__Solar-Halo__/heatsink/shp-glow.png"
@@ -9,11 +33,16 @@ shpipe.icons = {{
 }}
 shpipe.icon = nil
 shpipe.name = "halo-superheated-pipe"
+shpipe.place_result = "halo-superheated-pipe"
+-- Set explicitly: an item with a place_result otherwise takes its name and
+-- description from the entity it places, which deliberately reads as a plain
+-- "Heat pipe" (see above), so the item would lose the "Superheated" label.
+shpipe.localised_name = {"item-name.halo-superheated-pipe"}
+shpipe.localised_description = {"item-description.halo-superheated-pipe"}
 shpipe.fuel_category = "chemical"
 shpipe.burnt_result = "heat-pipe"
 shpipe.fuel_value = "350MJ"
 shpipe.fuel_emissions_multiplier = 0
-shpipe.localised_name = "Superheated heat pipe"
 shpipe.order = shpipe.order .. "1"
 shpipe.hide_from_player_crafting = true
 shpipe.auto_recycle = false
@@ -45,9 +74,9 @@ data:extend{{
 			}},
 			production_type = "input"
 		},{
-			pipe_picture = pipe_picture,
-			pipe_picture_frozen = pipe_frozen,
-			pipe_covers = pipecoverspictures(),
+			pipe_picture = util.pipe_picture,
+			pipe_picture_frozen = util.pipe_frozen,
+			pipe_covers = util.pipecoverspictures(),
 			secondary_draw_order = -1,
 			volume = 200,
 			pipe_connections = {{
@@ -59,9 +88,9 @@ data:extend{{
 			}}, 
 			production_type = "input"
 		},{
-			pipe_picture = pipe_picture,
-			pipe_picture_frozen = pipe_frozen,
-			pipe_covers = pipecoverspictures(),
+			pipe_picture = util.pipe_picture,
+			pipe_picture_frozen = util.pipe_frozen,
+			pipe_covers = util.pipecoverspictures(),
 			secondary_draw_order = -1,
 			volume = 100,
 			pipe_connections = {{
@@ -122,6 +151,16 @@ data:extend{{
 		specific_heat = "3MJ",
 		max_transfer = "500MW",
 		min_working_temperature = 160,
+		-- Owns all 4 external corners (previously split 2-and-2 with
+		-- halo-heatsinkhighreceiver, as two independently-heated networks --
+		-- see the last connection below for why that was a problem) plus one
+		-- extra internal connection south, to an ordinary adjacent heat
+		-- connection one tile further south on halo-heatsinkhighreceiver
+		-- (which is co-located with this entity, see below). This makes
+		-- both receivers part of the exact same heat network -- reaching a
+		-- real, shared equilibrium temperature by ordinary heat conduction --
+		-- while keeping their fluid outputs completely separate, so there's
+		-- no fluid-temperature averaging between the low and high streams.
 		connections = {{
 			position = {x = -1.1, y = -1.1},
 			direction = defines.direction.north
@@ -134,6 +173,21 @@ data:extend{{
 		},{
 			position = {x = 1.1, y = 1.1},
 			direction = defines.direction.east
+		},{
+			position = {x = 1.1, y = -1.1},
+			direction = defines.direction.north
+		},{
+			position = {x = 1.1, y = -1.1},
+			direction = defines.direction.east
+		},{
+			position = {x = -1.1, y = 1.1},
+			direction = defines.direction.south
+		},{
+			position = {x = -1.1, y = 1.1},
+			direction = defines.direction.west
+		},{
+			position = {x = 0, y = 0},
+			direction = defines.direction.south
 		}},
 
 		pipe_covers = util.pipe_covers,
@@ -172,23 +226,15 @@ data:extend{{
 		specific_heat = "3MJ",
 		max_transfer = "500MW",
 		min_working_temperature = 800,
+		-- No external corners of its own -- see halo-heatsinklowreceiver above.
+		-- Co-located with the low receiver, but its one port sits on the tile
+		-- south of the low receiver's, facing north, so the two ports are an
+		-- ordinary adjacent pair on different tiles (like two heat pipes
+		-- touching) rather than two ports on the same tile.
 		connections = {{
-			position = {x = 1.1, y = -1.1},
+			position = {x = 0, y = 1},
 			direction = defines.direction.north
-		},{
-			position = {x = 1.1, y = -1.1},
-			direction = defines.direction.east
-		},{
-			position = {x = -1.1, y = 1.1},
-			direction = defines.direction.south
-		},{
-			position = {x = -1.1, y = 1.1},
-			direction = defines.direction.west
 		}},
-		
-		pipe_covers = util.pipe_covers,
-		heat_pipe_covers = util.heat_pipe_covers,
-		heat_picture = util.heat_picture,
 	},
 	energy_usage = "500MW",
 	fluid_boxes = {{

@@ -14,11 +14,19 @@ data:extend{{
 
     crafting_speed = 1,
     crafting_categories = {"halo-terminal"},
-    energy_usage = "520MW",
+    -- The terminal only pays for running its own machinery, as a primary
+    -- consumer, so it can keep discharging during a blackout (the 500MJ buffer
+    -- also covers starting back up). The energy that actually gets stored
+    -- while charging is bought by halo-terminal-charger below, which is a
+    -- tertiary consumer and so only draws surplus power. 20MW for the
+    -- 2 second charge recipe plus the charger's 500MW for 2 seconds is the
+    -- same 1040MJ per charge the terminal used to cost on its own. The idle
+    -- drain also lives here, where the player can see it.
+    energy_usage = "20MW",
     energy_source = {
         type = "electric",
         buffer_capacity = "500MJ",
-        usage_priority = "tertiary",
+        usage_priority = "primary-input",
         drain = "4MW"
     },
 
@@ -49,6 +57,7 @@ data:extend{{
 			secondary_draw_order = -5,
             volume = 10,
             pipe_connections = {{
+                flow_direction = "input",
                 position = {x = -3.5, y = -3.5},
                 direction = defines.direction.north
             }},
@@ -60,6 +69,7 @@ data:extend{{
 			secondary_draw_order = -5,
             volume = 10,
             pipe_connections = {{
+                flow_direction = "output",
                 position = {x = -3.5, y = -2.5},
                 direction = defines.direction.west
             }},
@@ -71,6 +81,7 @@ data:extend{{
 			secondary_draw_order = -5,
             volume = 10,
             pipe_connections = {{
+                flow_direction = "input",
                 position = {x = -2.5, y = -3.5},
                 direction = defines.direction.north
             }},
@@ -82,6 +93,7 @@ data:extend{{
 			secondary_draw_order = -5,
             volume = 10,
             pipe_connections = {{
+                flow_direction = "output",
                 position = {x = -3.5, y = -3.5},
                 direction = defines.direction.west
             }},
@@ -93,6 +105,16 @@ data:extend{{
                 linked_connection_id = 1
             }},
             production_type = "output"
+        },{
+            -- surplus power from halo-terminal-charger, consumed by halo-charge.
+            -- Kept small: this box and the charger's fill up from the turbine's
+            -- output during a blackout too, since both are tertiary.
+            volume = 2000,
+            pipe_connections = {{
+                connection_type = "linked",
+                linked_connection_id = 2
+            }},
+            production_type = "input"
         }
     },
 	
@@ -159,6 +181,10 @@ data:extend{{
 	energy_source = {
 		type = "electric",
 		usage_priority = "tertiary",
+		-- A tertiary source behaves like an accumulator and would otherwise
+		-- charge its own buffer (333MJ) from surplus power. This should only
+		-- ever produce.
+		input_flow_limit = "0W",
 	},
 	fluid_box = {
 		volume = 500,
@@ -175,6 +201,44 @@ data:extend{{
 	burns_fluid = true,
 	max_power_output = "20GW",
 	selectable_in_game = false,
+	hidden = true,
+	hidden_in_factoriopedia = true,
+	flags = {"not-on-map", "not-deconstructable", "not-blueprintable", "hide-alt-info", "not-flammable", "not-selectable-in-game"},
+},{
+	-- Turns surplus electricity into halo-energy-proxy fluid (1MJ per unit)
+	-- for the terminal's charge recipe. Tertiary, so it only gets power
+	-- nothing else wanted.
+	type = "assembling-machine",
+	name = "halo-terminal-charger",
+	icon = "__Solar-Halo__/terminal/icon.png",
+	collision_box = cb,
+	selection_box = sb,
+	selection_priority = 1,
+	selectable_in_game = false,
+	max_health = 200,
+	crafting_speed = 1,
+	crafting_categories = {"halo-terminal-charger"},
+	fixed_recipe = "halo-terminal-charger",
+	show_recipe_icon = false,
+	show_recipe_icon_on_map = false,
+	energy_usage = "500MW",
+	energy_source = {
+		type = "electric",
+		usage_priority = "tertiary",
+		drain = "0W",
+		-- this sits directly on top of the terminal, which would otherwise
+		-- show a "no power" icon over it whenever surplus power runs out
+		render_no_power_icon = false,
+		render_no_network_icon = false
+	},
+	fluid_boxes = {{
+		volume = 1000,
+		pipe_connections = {{
+			connection_type = "linked",
+			linked_connection_id = 1
+		}},
+		production_type = "output"
+	}},
 	hidden = true,
 	hidden_in_factoriopedia = true,
 	flags = {"not-on-map", "not-deconstructable", "not-blueprintable", "hide-alt-info", "not-flammable", "not-selectable-in-game"},
@@ -229,13 +293,33 @@ data:extend{{
 	type = "recipe-category",
 	name = "halo-terminal",
 },{
+	type = "recipe-category",
+	name = "halo-terminal-charger",
+},{
+	type = "recipe",
+	category = "halo-terminal-charger",
+	name = "halo-terminal-charger",
+	enabled = true,
+	-- 500MW for 1/500th of a second is 1MJ per unit of fluid
+	energy_required = 0.002,
+	ingredients = {},
+	results = {
+		{type = "fluid", name = "halo-energy-proxy", amount = 1, fluidbox_index = 1}
+	},
+	allow_productivity = false,
+	allow_quality = false,
+	hide_from_player_crafting = true,
+	hidden = true,
+	hidden_in_factoriopedia = true,
+},{
 	type = "recipe",
 	category = "halo-terminal",
 	name = "halo-charge",
 	enabled = false,
 	energy_required = 2,
 	ingredients = {
-		{type = "fluid", name = "electrolyte", amount = 1, fluidbox_index = 1}
+		{type = "fluid", name = "electrolyte", amount = 1, fluidbox_index = 1},
+		{type = "fluid", name = "halo-energy-proxy", amount = 1000, fluidbox_index = 3}
 	},
 	results = {
 		{type = "fluid", name = "halo-charged-electrolyte", amount = 1, fluidbox_index = 1}

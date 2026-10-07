@@ -23,7 +23,7 @@ data:extend {{
 },{
     type = "tips-and-tricks-item",
     name = "halo-solar-station-briefing",
-	tag = "[item=halo-station-foundation]",
+	tag = "[item=halo-foundation]",
     category = "space-age",
 	order = "halo3",
     indent = 1,

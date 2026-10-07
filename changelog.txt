@@ -1,0 +1,37 @@
+---------------------------------------------------------------------------------------------------
+Version: 1.1.0
+Date: 2026-10-07
+  Bugfixes:
+    - Fixed heat pipe ghosts (and real placements via robots/remote view) sometimes resolving to
+      the superheated heat pipe item instead of a plain heat pipe, and then never being fulfilled
+      since that item is uncraftable. The superheated pipe now places its own dedicated entity
+      instead of reusing the plain heat-pipe entity, which is what caused the ambiguity. It reads
+      as a normal heat pipe once placed and mines back into a normal heat pipe.
+    - The superheated heat pipe item now has its proper name and a description.
+    - Fixed the Electrolyte Terminal being unable to discharge once the network had run out of
+      power. It was a tertiary consumer for its whole 520MW draw, so it could not get the power it
+      needed to run the discharge that would have restored the network. The terminal itself is now
+      a small (20MW) primary consumer, and charging is paid for by a hidden tertiary charger
+      linked to it, so charging still only ever uses surplus power. A full charge still costs the
+      same 1040MJ in total. Existing terminals are given their charger automatically.
+    - Updated the heatsink tooltip: all four heat connections now feed the same machine.
+    - Fixed the heatsink's water/coolant pipe connections silently getting no cover graphics due
+      to referencing undefined globals instead of the intended util functions.
+    - Fixed the solar station tips and tricks entry using a nonexistent item for its icon, and
+      added its missing Polish text.
+    - Fixed the Electrolyte Terminal's hidden generator charging its own 333MJ buffer from
+      surplus power for a minute or two after a terminal was built, which showed up as a
+      draw from the generator.
+    - Fixed removing the special space tile not revealing the intended foundation underneath.
+    - Hardened a few control.lua handlers against missing helper entities instead of erroring.
+  Changes:
+    - module-inserter is now an optional dependency instead of a required one.
+    - halo-heatsink's 4 heat-pipe corners used to be split into two independently-heated
+      networks (2 corners feeding the low-temperature side, 2 feeding the high-temperature
+      side). They're now one real, shared heat network: all 4 corners feed the low-temperature
+      receiver, which conducts to the high-temperature receiver through one ordinary internal
+      heat connection between them. The fluid outputs stay completely separate, so there's no
+      change to recipes, fluid boxes, or the building's footprint -- only how it's heated
+      internally. Existing placed heatsinks are migrated to the new receiver layout, with their
+      selected recipe preserved.
+    - Split control.lua into per-feature files, mirroring the existing data.lua split.

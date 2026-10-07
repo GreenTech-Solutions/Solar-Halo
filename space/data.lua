@@ -1,6 +1,10 @@
 local function mapgen()
 	local mg = {
 		property_expression_names = {
+			-- TODO: `halo_platform` is never defined anywhere in this mod, so this
+			-- evaluates to nil and the key is dropped: no elevation expression is
+			-- actually set here. Either define a real noise expression and reference
+			-- it by name (string), or remove this line.
 			elevation = halo_platform,
 		},
 		autoplace_settings = {
@@ -339,7 +343,7 @@ local halospace = table.deepcopy(data.raw["tile"]["lava-hot"])
 halospace.name = "halo-empty-space"
 halospace.autoplace = {probability_expression = "halo_station < 1"}
 halospace.placeable_by = {item = "halo-foundation", count = 1}
-default_cover_tile = "halo-foundation"
+halospace.default_cover_tile = "halo-foundation"
 halospace.collision_mask = {
   layers = {
     water_tile=true,

@@ -1,10 +1,10 @@
 {
   "name": "Solar-Halo",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "title": "Solar Halo",
   "author": "Deluxev2",
   "factorio_version": "2.0",
-  "dependencies": ["base >= 2.0", "space-age >= 2.0", "module-inserter"],
+  "dependencies": ["base >= 2.0", "space-age >= 2.0", "? module-inserter"],
   "space_travel_required": true,
   "spoiling_required": true,
   "description": "Adds a solar orbit location and supercomputers. Brave the heat of the sun to gather enormous amounts of solar power. Manage high energy supercomputers and their waste heat to use their computing power to make advancements."

@@ -1,337 +1,87 @@
 --control.lua
+--
+-- This file only wires together the per-feature control scripts below; the
+-- actual entity logic lives next to each feature's data.lua, mirroring how
+-- data.lua itself is split (see there for the require list).
+--
+-- The entity built/removed/rotated events are shared by several features at
+-- once, and Factorio only allows a single handler per event id (a later
+-- script.on_event call for the same event replaces an earlier one, it does
+-- not add a second listener) -- so those three events are dispatched here,
+-- from a small per-entity-name lookup table, instead of each feature
+-- registering its own handler for them.
 
-local function ensure_storage_tables()
-	storage["computer"] = storage["computer"] or {}
-	storage["solar-surface"] = storage["solar-surface"] or {}
-	storage["solar-forces"] = storage["solar-forces"] or {}
-end
+local halo_events = require("halo-events")
+local computer = require("computer.control")
+local terminal = require("terminal.control")
+local heatpump = require("heatpump.control")
+local heatsink = require("heatsink.control")
+local space = require("space.control")
+require("nav-computer.control")
 
-local function ensure_solar_station_power()
-	if storage["solar-station"] == nil or not storage["solar-station"].valid then
-		local surface = game.get_surface("halo-solar-station")
-		if surface then
-			local e = surface.create_entity {
-				name = "halo-station-energy",
-				position = {0,0},
-				force = "player",
-			}
-			e.destructible = false
-			e.minable = false
-			local p = 800000000
-			e.power_production = p
-			e.electric_buffer_size = p/60
-			storage["solar-station"] = e
-		end
-	end
-end
+local on_built_by_name = {
+	["halo-computer"] = computer.on_built,
+	["halo-terminal"] = terminal.on_built,
+	["halo-heatpump"] = heatpump.on_built,
+	["halo-heatsink"] = heatsink.on_built,
+	["halo-superheated-pipe"] = heatsink.on_superheated_pipe_built,
+}
+
+local on_removed_by_name = {
+	["halo-computer"] = computer.on_removed,
+	["halo-terminal"] = terminal.on_removed,
+	["halo-heatpump"] = heatpump.on_removed,
+	["halo-heatsink"] = heatsink.on_removed,
+}
+
+local on_rotated_by_name = {
+	["halo-computer"] = computer.on_rotated,
+	["halo-terminal"] = terminal.on_rotated,
+	["halo-heatpump"] = heatpump.on_rotated,
+}
 
 script.on_init(function()
-	ensure_storage_tables()
-	ensure_solar_station_power()
+	computer.ensure_storage()
+	space.ensure_storage()
+	space.ensure_solar_station_power()
 end)
 
 script.on_configuration_changed(function()
-	ensure_storage_tables()
-	ensure_solar_station_power()
+	terminal.ensure_all_helpers()
+	computer.ensure_storage()
+	space.ensure_storage()
+	space.ensure_solar_station_power()
 end)
 
-function getOffset(direction)
-	if direction == defines.direction.north then
-		return 0, -0.5
-	elseif direction == defines.direction.east then
-		return 0.5, 0
-	elseif direction == defines.direction.south then
-		return 0, 0.5
-	elseif direction == defines.direction.west then
-		return -0.5, 0
-	end
-end
-
-----------surface----------
-script.on_event({
-	defines.events.on_surface_created,
-	defines.events.on_surface_imported},
-function(event)
-	local s = game.get_surface(event.surface_index)
-	if s and s.name == "halo-solar-station" then
-		s.create_global_electric_network()
-		s.solar_power_multiplier = 0
-		ensure_solar_station_power()
-		s.daytime = 0.5
-		s.freeze_daytime = true
-	end
-end)
-
-script.on_event({
-	defines.events.on_surface_deleted,
-	defines.events.on_surface_cleared},
-function(event)
-	local s = game.get_surface(event.surface_index)
-	if s and s.name == "halo-solar-station" then
-		ensure_solar_station_power()
-	end
-end)
-
-----------tile created---------
-script.on_event({
-	defines.events.on_player_built_tile,
-	defines.events.on_robot_built_tile},
-function(event)
-	local s = game.get_surface(event.surface_index)
-	if s.name == "halo-solar-station" then
-		ensure_solar_station_power()
-		local p = storage["solar-station"].power_production
-		p = p + 13000000 * #event.tiles
-		storage["solar-station"].power_production = p
-		storage["solar-station"].electric_buffer_size = p/60
-	end
-end)
-
----------tile removed---------
-script.on_event({
-	defines.events.on_player_mined_tile,
-	defines.events.on_robot_mined_tile},
-function(event)
-	local s = game.get_surface(event.surface_index)
-	if s.name == "halo-solar-station" then
-		local p = storage["solar-station"].power_production
-		for _, tile in pairs(event.tiles) do
-			if tile.old_tile.name == "halo-foundation" then p = p - 13000000 end
-		end
-		storage["solar-station"].power_production = p
-		storage["solar-station"].electric_buffer_size = p/60
-	end
-end)
 ----------building created---------
-script.on_event({
-	defines.events.on_built_entity,
-	defines.events.on_robot_built_entity,
-	defines.events.script_raised_built,
-	defines.events.script_raised_revive,
-	defines.events.on_space_platform_built_entity,
-	defines.events.on_biter_base_built},
-function(event)
-	local entity = event.created_entity or event.entity or event.destination
+script.on_event(halo_events.entity_built, function(event)
+	local entity = halo_events.get_built_entity(event)
 	if not entity.valid then return end
 
-	if entity.name == "halo-computer" then 
-		local heat = entity.surface.create_entity {
-			name = "halo-computer-heat",
-			position = entity.position,
-			force = entity.force_index,
-			direction = entity.direction,
-			create_build_effect_smoke = false,
-		}
-		heat.destructible = false
-		heat.minable_flag = false
-		storage["computer"][entity.unit_number] = {c = entity, h = heat, p = 0}
-	elseif entity.name == "halo-terminal" then
-		local turbine = entity.surface.create_entity {
-			name = "halo-terminal-turbine",
-			position = entity.position,
-			force = entity.force_index,
-			direction = entity.direction,
-		}
-		turbine.destructible = false
-		turbine.minable_flag = false
-		entity.fluidbox.add_linked_connection(1,turbine,1)
-	elseif event.consumed_items ~= nil and event.consumed_items.valid and #event.consumed_items > 0 and event.consumed_items[1].name == "halo-superheated-pipe" then
-		entity.temperature = 800
-	elseif entity.name == "halo-heatpump" then
-		local receiver = entity.surface.create_entity {
-			name = "halo-heatpump-receiver",
-			position = entity.position,
-			force = entity.force_index,
-			direction = entity.direction,
-		}
-		receiver.destructible = false
-		receiver.minable_flag = false
-		
-		local x,y = getOffset(entity.direction)
-		local pos = {x = entity.position.x + x, y = entity.position.y + y}
-		local reactor = entity.surface.create_entity {
-			name = "halo-heatpump-reactor",
-			position = pos,
-			force = entity.force_index,
-			direction = entity.direction,
-		}
-		reactor.destructible = false
-		reactor.minable_flag = false
-
-		entity.fluidbox.add_linked_connection(1,receiver,1)
-		entity.fluidbox.add_linked_connection(2,reactor,1)
-	elseif entity.name == "halo-heatsink" then
-		local receiverlow = entity.surface.create_entity {
-			name = "halo-heatsinklowreceiver",
-			position = entity.position,
-			force = entity.force_index,
-			direction = entity.direction,
-		}
-		receiverlow.destructible = false
-		receiverlow.minable_flag = false
-		local receiverhigh = entity.surface.create_entity {
-			name = "halo-heatsinkhighreceiver",
-			position = entity.position,
-			force = entity.force_index,
-			direction = entity.direction,
-			destructible = false,
-		}
-		receiverhigh.destructible = false
-		receiverhigh.minable_flag = false
-		
-		entity.fluidbox.add_linked_connection(1,receiverlow,1)
-		entity.fluidbox.add_linked_connection(2,receiverhigh,1)
+	local handler = on_built_by_name[entity.name]
+	if handler then
+		handler(entity)
 	end
 end)
 
 ---------building removed---------
-script.on_event({
-	defines.events.on_player_mined_entity,
-	defines.events.on_robot_mined_entity,
-	defines.events.on_entity_died,
-	defines.events.script_raised_destroy,
-	defines.events.on_space_platform_mined_entity},
-function(event)
-    local entity = event.entity
-    if not entity.valid then return end
-    if entity.name == "halo-computer" then
-		local tuple = storage["computer"][entity.unit_number]
-		storage["computer"][entity.unit_number] = nil
-		if tuple.h ~= nil then
-			tuple.h.destroy()
-		end
-	elseif entity.name == "halo-terminal" then
-		local turbine, _ = entity.fluidbox.get_linked_connection(1)
-		if turbine ~= nil then
-			turbine.destroy()
-		end
-	elseif entity.name == "halo-heatpump" then 
-		local receiver, _ = entity.fluidbox.get_linked_connection(1)
-		if receiver ~= nil then
-			receiver.destroy()
-		end
-		
-		local reactor, _ = entity.fluidbox.get_linked_connection(2)
-		if reactor ~= nil then
-			reactor.destroy()
-		end
-	elseif entity.name == "halo-heatsink" then
-		local receiver, _ = entity.fluidbox.get_linked_connection(1)
-		if receiver ~= nil then
-			receiver.destroy()
-		end
-		
-		receiver, _ = entity.fluidbox.get_linked_connection(2)
-		if receiver ~= nil then
-			receiver.destroy()
-		end
+script.on_event(halo_events.entity_removed, function(event)
+	local entity = event.entity
+	if not entity.valid then return end
+
+	local handler = on_removed_by_name[entity.name]
+	if handler then
+		handler(entity)
 	end
 end)
 
 ---------building rotated---------
-script.on_event(defines.events.on_player_rotated_entity,
-function(event)
-    local entity = event.entity
-    if not entity.valid then return end
-    if entity.name == "halo-computer" then	
-		local tuple = storage["computer"][entity.unit_number]
-		tuple.h.direction = tuple.c.direction
-	elseif entity.name == "halo-terminal" then
-		local turbine, _ = entity.fluidbox.get_linked_connection(1)
-		turbine.direction = entity.direction
-	elseif entity.name == "halo-heatpump" then
-		local receiver, _ = entity.fluidbox.get_linked_connection(1)
-		receiver.direction = entity.direction
-		
-		local reactor, _ = entity.fluidbox.get_linked_connection(2)
-		reactor.destroy()
-		local x,y = getOffset(entity.direction)
-		local pos = {x = entity.position.x + x, y = entity.position.y + y}
-		reactor = entity.surface.create_entity {
-			name = "halo-heatpump-reactor",
-			position = pos,
-			force = entity.force_index,
-			direction = entity.direction,
-		}
-		reactor.destructible = false
-		reactor.minable_flag = false
-		entity.fluidbox.add_linked_connection(2,reactor,1)
-	end
-end)
+script.on_event(defines.events.on_player_rotated_entity, function(event)
+	local entity = event.entity
+	if not entity.valid then return end
 
-----------Computer----------
-script.on_event(defines.events.on_tick,
-function(event)
-	if event.tick % 67 ~= 0 then return end
-
-	for i,t in pairs(storage["computer"]) do
-		if t.c.valid and t.h.valid then
-			local newp = t.c.products_finished
-			local dur = (newp - t.p)/t.c.crafting_speed
-			local mult = 1000*0.5*(t.c.consumption_bonus + 1)
-			t.h.temperature = t.h.temperature + dur*mult/200
-			t.p = newp
-			
-			t.c.disabled_by_script = (t.h.temperature >= 200)
-		end
-	end
-end)
-
-----------Navigation Computer----------
-script.on_event(defines.events.on_script_trigger_effect,
-function(event)
-	if event.effect_id ~= "navcomp" then
-		return
-	end
-
-	local e = event.target_entity
-	if e ~= nil and e.valid and e.type == "asteroid" then
-		e.destroy()
-	end
-end)
-
-----------Solar Productivity----------
-function updateSolar()
-	local m = 0
-	for _,lvl in pairs(storage["solar-forces"]) do
-		if lvl > m then m = lvl end
-	end
-
-	for _,s in pairs(game.surfaces) do
-		if storage["solar-surface"] == nil then
-			storage["solar-surface"] = {}
-		end
-		if storage["solar-surface"][s.name] == nil then
-			storage["solar-surface"][s.name] = s.solar_power_multiplier
-		end
-		local solar = storage["solar-surface"][s.name]
-		if solar > 0 then
-			local bonus = solar * 0.1 * m
-			s.solar_power_multiplier = solar + bonus
-		end
-	end
-end
-
-script.on_event(defines.events.on_research_finished,
-function(event)
-	if event.research.name == "halo-solar" then
-		if storage["solar-forces"] == nil then
-			storage["solar-forces"] = {}
-		end
-
-		storage["solar-forces"][event.research.force.name] = event.research.level - 1
-
-		updateSolar()
-	end
-end)
-
-script.on_event(defines.events.on_research_reversed,
-function(event)
-	if event.research.name == "halo-solar" then
-		if storage["solar-forces"] == nil then
-			storage["solar-forces"] = {}
-		end
-		storage["solar-forces"][event.research.force.name] = 0
-		updateSolar()
+	local handler = on_rotated_by_name[entity.name]
+	if handler then
+		handler(entity)
 	end
 end)
