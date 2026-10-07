@@ -2,97 +2,78 @@
 
 *Fly closer to the sun than any platform should. Build supercomputers. Try not to melt them.*
 
-![Hero image: platform in Near Solar Orbit](IMAGE_URL_HERO)
+![Near Solar Orbit and the Solar Station on the starmap](https://raw.githubusercontent.com/ackeri/Solar-Halo/main/docs/images/starmap.png)
 
-Solar Halo adds a far, hot corner of Space Age: a **near solar orbit** with enormous solar potential and a permanent **solar station** at the end of it. The power is almost free. The catch is the heat, the flares, and what you build to turn all that energy into something useful.
-
-Requires **Space Age**. Optional: **module-inserter**. Available in English and Polish.
+Solar Halo fleshes out the fireball on the starmap. Approach **near solar orbit** with enormous solar potential and dive even further to build a permanent **solar station**. The power is limitless if you can take the heat.
 
 ---
 
 ## Getting there
 
-![Plasma flares drifting past a platform](IMAGE_URL_FLARES)
+<!-- TODO image: plasma flares drifting past a platform (the tips and tricks simulation makes a good GIF) -->
 
-**Near Solar Orbit** is as close as a platform can get to the sun without melting. There are no resource asteroids to collect, just **plasma flares**, which shrug off conventional weapons. Bring lasers or other electric weapons.
+**Near Solar Orbit** is as close as a platform can get to the sun without melting. There are no resource asteroids to collect, just **plasma flares**, which shrug off conventional weaponry. 
 
-* The pull of the sun grows as you approach, so plan your fuel. The route uses a flight condition, so a platform can turn around midway.
+* The pull of the sun is enormous, so plan your fuel to make sure you can make it back. The route uses a flight condition, so a platform can turn around midway.
 * A **Navigation computer** uses star charts to plan around asteroid encounters.
+
+![A platform on its way, with a navigation computer](https://raw.githubusercontent.com/ackeri/Solar-Halo/main/docs/images/nav-computer.jpg)
 
 ## The solar station
 
-![The solar station on its lava surface](IMAGE_URL_STATION)
+<!-- TODO image: the solar station on its lava surface -->
 
-Platforms can't survive the final trip, so the **solar station** is reached by cargo pod and supplied by rocket. Each piece of **station foundation** you lay generates power for the station's whole electric network, so the station grows with your ambitions.
+To dive further, you'll need something more reinforced than a space platform. Build a **solar station** which can be reached by cargo pod. Each piece of **station foundation** you lay generates more solar power for the station wide electric network.
 
-* Station foundation is heat resistant and built right onto the lava.
+* Station foundation is heat resistant and built as close to the sun as it can survive.
 * Solar panels on the station don't produce power. The foundation does.
-* The **Gauss dragon** delivers cargo back up to your platforms using electromagnetic coils.
+* The **Gauss dragon** can deliver cargo back up to your platforms using electromagnetic coils.
+
+![The Gauss dragon](https://raw.githubusercontent.com/ackeri/Solar-Halo/main/docs/images/gauss-dragon.jpg)
 
 ---
 
 ## The supercomputer
 
-![A supercomputer connected to heatsinks](IMAGE_URL_COMPUTER)
+![Supercomputers cooled by a field of heatsinks](https://raw.githubusercontent.com/ackeri/Solar-Halo/main/docs/images/computers-and-heatsinks.jpg)
 
-The **supercomputer** eats power and turns it into **compute**, a fluid that powers a whole branch of research. It releases half of its power as heat and **stops working above 200 degrees**, so heat management is the game.
+The **supercomputer** devours power and creates **compute** to power whole branch of research. Half of the consumed power is released as heat and the supercomputer **stops working above 200 degrees**, so heat management is critical.
 
 * **Computation science pack:** a new science pack made from compute.
-* **Science simulation:** use compute to simulate most other sciences. It is wasteful, which makes it a good power sink.
-* **Module specialization:** temporarily double a module's effect, if you can get modules to your computers.
+* **Science simulation:** use compute to simulate many sciences. Expensive but simple.
+* **Module specialization:** temporarily double a module's effect, requiring module logistics.
 * **Algorithmic efficiency:** an endless upgrade for compute output.
+
+![Specializing modules with compute](https://raw.githubusercontent.com/ackeri/Solar-Halo/main/docs/images/module-logistics.jpg)
+
+![A specialized module](https://raw.githubusercontent.com/ackeri/Solar-Halo/main/docs/images/module-tooltip.png)
 
 ## Managing heat
 
-![Heat pipes, heatpumps and heatsinks](IMAGE_URL_HEAT)
+<!-- TODO image: heat pipes, heatpumps and heatsinks (the overheating simulation makes a good GIF) -->
 
-* **Heat pipes** carry heat away from your computers.
-* **Heatsink:** vents heat, or passes it on. Low temperature recipes need 160 degrees, high temperature recipes need 800. Every corner of a heatsink is part of the same heat network.
-* **Heatpump:** moves heat uphill, concentrating it for uses like a heat exchanger. Its input must be at least 40 degrees.
-* **Superheated heat pipe:** starts at 800 degrees and burns as a very large fuel. Mining one returns a normal heat pipe.
+* **Heatsink:** vents heat, or transfers it to a coolant. Low temperature recipes need 160 degrees, high temperature recipes need 800. 
+* **Heatpump:** concentrate heat for uses like a heat exchanger.
+* **Superheated heat pipe:** a form of energy storage and Aquilo convenience. Energy can be extracted in a heating tower.
 
 ## Storing the sun
 
-![Electrolyte terminal](IMAGE_URL_TERMINAL)
+![An electrolyte terminal](https://raw.githubusercontent.com/ackeri/Solar-Halo/main/docs/images/electrolyte-terminal.jpg)
 
 The **Electrolyte Terminal** charges and discharges electrolyte with massive amounts of energy. Charged electrolyte is less corrosive than the plain kind and can be barrelled and shipped.
 
 * Charging only uses **surplus power**, up to 500MW.
-* Discharging keeps working through a blackout, so a terminal can restart a dead grid.
+* Electrolyte stores 1 GJ per unit, allowing extremely dense energy storage.
 
 ## And a few odd ones
 
 * **Genetically modified plants:** a sterile yumako and jellynut hybrid that grows bioflux.
 * **Solar productivity:** concentrate the sun's rays to raise the output of all your solar panels.
 
----
-
-## Rewards
-
-![What you get for finishing the climb](IMAGE_URL_REWARDS)
-
-* **The most solar power in Space Age**, from a surface that never goes dark.
-* **Compute**, and with it science you can buy with electricity alone.
-* **Grid-scale storage** that can be barrelled and delivered anywhere.
-* **Gauss dragon** logistics from the surface to your platforms.
-* **Better solar everywhere**, on every planet and platform.
+![Bioflux trees](https://raw.githubusercontent.com/ackeri/Solar-Halo/main/docs/images/bioflux-gmo.jpg)
 
 ---
 
-## In the game
+* Found a bug? Please share your mod list and issue in the Discussion tab.
 
-Each of the three Tips and Tricks entries comes with a short simulation: flares passing a gun turret and a laser turret, the solar station, and a supercomputer venting heat through a heat pipe.
 
-## Notes
-
-* Existing saves are migrated automatically (heatsink layout, electrolyte terminal).
-* Found a bug? Please say which platform, planet and mod list you were using, and post in the Discussion tab.
-
-## Credits & licence
-
-* **Author:** deluxev2
-* **Translations:** Polish
-* **Graphics:** some textures are built on Factorio's own
-* **Licence:** MIT
-
-[Support / source link here]
