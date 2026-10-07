@@ -362,23 +362,24 @@ halospace.absorptions_per_second = nil
 halospace.ambient_sounds = nil
 halospace.effect_color = { 255, 255, 50 }
 halospace.effect_color_secondary = { 255, 255, 50 }
--- The vanilla water effect, tuned so the surface looks like it is flowing.
--- Only this tile uses it, vanilla water is untouched. Multipliers are
--- relative to the vanilla water values. If the motion looks too regular, the
--- things to try are: different x and y in `scale` (breaks up the pattern),
--- speed and tick not matching (they are two separate time factors), the
--- thresholds (which parts of the noise count as dark, bright and glinting),
--- and `textures` (the 512x512 noise image that gets tiled and scrolled).
+-- Vulcanus' lava shader (two noise layers that flow into each other, which
+-- repeats less obviously than the plain water effect), as a copy so the
+-- vanilla lava is untouched. Multipliers are relative to the vanilla lava
+-- values. The shader's parameters live in `solar_effect.water` even though it
+-- is the lava variation. Other things to try, if needed: `scale` (size of
+-- the pattern, x and y separately), and the dark/reflection/specular
+-- thresholds, which are cutoffs on the noise that decide where the dark
+-- patches, reflections and glints show up.
 local flow = {
-	speed = 2.5,
-	tick = 1.8,
-	scale = {0.006, 0.0078},
+	speed = 1,
+	tick = 1,
+	scale = nil,
 }
-local solar_effect = table.deepcopy(data.raw["tile-effect"]["water"])
+local solar_effect = table.deepcopy(data.raw["tile-effect"]["lava"])
 solar_effect.name = "halo-solar"
 solar_effect.water.animation_speed = solar_effect.water.animation_speed * flow.speed
 solar_effect.water.tick_scale = solar_effect.water.tick_scale * flow.tick
-solar_effect.water.animation_scale = flow.scale
+solar_effect.water.animation_scale = flow.scale or solar_effect.water.animation_scale
 data:extend{solar_effect}
 halospace.effect = "halo-solar"
 halospace.variants.main[1].picture = "__Solar-Halo__/space/solar-tile.png"
