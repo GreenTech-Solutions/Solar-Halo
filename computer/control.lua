@@ -7,6 +7,7 @@ function M.ensure_storage()
 end
 
 function M.on_built(entity)
+	M.ensure_storage()
 	local heat = entity.surface.create_entity {
 		name = "halo-computer-heat",
 		position = entity.position,

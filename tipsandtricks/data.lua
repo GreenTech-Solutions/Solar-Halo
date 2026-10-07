@@ -1,3 +1,5 @@
+local simulations = require("tipsandtricks.simulations")
+
 data:extend {{
     type = "tips-and-tricks-item",
     name = "halo-solar-halo-briefing",
@@ -9,6 +11,7 @@ data:extend {{
         type = "research",
         technology = "halo-discovery-solar"
     },
+    simulation = simulations.solar_halo_briefing,
 },{
     type = "tips-and-tricks-item",
     name = "halo-compute",
@@ -20,6 +23,7 @@ data:extend {{
         type = "build-entity",
         entity = "halo-computer",
     },
+    simulation = simulations.halo_overheating,
 },{
     type = "tips-and-tricks-item",
     name = "halo-solar-station-briefing",
@@ -31,4 +35,5 @@ data:extend {{
         type = "research",
         technology = "halo-discovery-station"
     },
+    simulation = simulations.solar_station_briefing,
 }}

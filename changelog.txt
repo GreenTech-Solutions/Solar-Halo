@@ -25,6 +25,9 @@ Date: 2026-10-07
     - Fixed removing the special space tile not revealing the intended foundation underneath.
     - Hardened a few control.lua handlers against missing helper entities instead of erroring.
   Changes:
+    - The tips and tricks entries now have simulations: flares passing a gun turret and a laser
+      turret, the solar station, and a supercomputer venting heat through a heat pipe into a
+      heatsink.
     - module-inserter is now an optional dependency instead of a required one.
     - halo-heatsink's 4 heat-pipe corners used to be split into two independently-heated
       networks (2 corners feeding the low-temperature side, 2 feeding the high-temperature
