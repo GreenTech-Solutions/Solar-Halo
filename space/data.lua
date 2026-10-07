@@ -362,6 +362,13 @@ halospace.absorptions_per_second = nil
 halospace.ambient_sounds = nil
 halospace.effect_color = { 255, 255, 50 }
 halospace.effect_color_secondary = { 255, 255, 50 }
-halospace.effect = "water"
+-- The vanilla water effect with a faster animation, so the surface looks
+-- like it is flowing. Only this tile uses it, vanilla water is untouched.
+local solar_effect = table.deepcopy(data.raw["tile-effect"]["water"])
+solar_effect.name = "halo-solar"
+solar_effect.water.animation_speed = solar_effect.water.animation_speed * 3.5
+solar_effect.water.tick_scale = solar_effect.water.tick_scale * 3.5
+data:extend{solar_effect}
+halospace.effect = "halo-solar"
 halospace.variants.main[1].picture = "__Solar-Halo__/space/solar-tile.png"
 data.extend{halospace}

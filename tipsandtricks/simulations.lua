@@ -105,10 +105,9 @@ simulations.solar_station_briefing =
 
     local force = game.forces.player
     surface.create_entity{name = "cargo-landing-pad", position = {0, 0}, force = force}
-    for _, position in pairs({{-5, -4}, {5, -4}, {-5, 4}, {5, 4}, {0, -5}, {0, 5}}) do
-      local lamp = surface.create_entity{name = "small-lamp", position = position, force = force}
-      lamp.always_on = true
-    end
+    -- a single lamp, so the dim light of the station stands out
+    local lamp = surface.create_entity{name = "small-lamp", position = {4.5, -3.5}, force = force}
+    lamp.always_on = true
 
     -- the station grows by laying more foundation along its edge
     for x = 7, 10 do
