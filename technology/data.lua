@@ -321,3 +321,11 @@ data:extend{{
 			recipe = "halo-foundation"
 	}}
 }}
+
+-- Other mods can switch these features off with the startup settings.
+if not settings.startup["halo-science-simulation"].value then
+	data.raw["technology"]["halo-sim"] = nil
+end
+if not settings.startup["halo-module-specialization"].value then
+	data.raw["technology"]["halo-module"] = nil
+end
