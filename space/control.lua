@@ -17,7 +17,7 @@ function M.ensure_solar_station_power()
 				force = "player",
 			}
 			e.destructible = false
-			e.minable = false
+			e.minable_flag = false
 			local p = 800000000
 			e.power_production = p
 			e.electric_buffer_size = p / 60

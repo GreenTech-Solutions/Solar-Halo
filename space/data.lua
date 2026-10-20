@@ -384,7 +384,10 @@ solar_effect.water.animation_scale = flow.scale
 -- fix that: the second texture is a recolored copy (made by
 -- tools/recolor-lava.py), and the shader's own highlight colors, a green and a
 -- brown in Vulcanus' lava, are moved to yellow.
-solar_effect.water.textures[2].filename = "__Solar-Halo__/space/lava-solar.png"
+-- 2.1.22 moved the lava image from textures[2] to image_textures[1].
+local water = solar_effect.water
+local lava = water.image_textures and water.image_textures[1] or water.textures[2]
+lava.filename = "__Solar-Halo__/space/lava-solar.png"
 solar_effect.water.specular_lightness = {48, 40, 6}
 solar_effect.water.foam_color = {70, 55, 12}
 data:extend{solar_effect}
